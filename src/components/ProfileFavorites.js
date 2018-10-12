@@ -1,23 +1,25 @@
-'use strict';
-
 import { Profile, mapStateToProps } from './Profile';
 import React from 'react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import agent from '../agent';
 import { connect } from 'react-redux';
+import {
+  PROFILE_PAGE_LOADED,
+  PROFILE_PAGE_UNLOADED
+} from '../constants/actionTypes';
 
 const mapDispatchToProps = dispatch => ({
-  onLoad: (payload) =>
-    dispatch({ type: 'PROFILE_FAVORITES_PAGE_LOADED', payload }),
+  onLoad: (pager, payload) =>
+    dispatch({ type: PROFILE_PAGE_LOADED, pager, payload }),
   onUnload: () =>
-    dispatch({ type: 'PROFILE_FAVORITES_PAGE_UNLOADED' })
+    dispatch({ type: PROFILE_PAGE_UNLOADED })
 });
 
 class ProfileFavorites extends Profile {
   componentWillMount() {
-    this.props.onLoad(Promise.all([
-      agent.Profile.get(this.props.params.username),
-      agent.Articles.favoritedBy(this.props.params.username)
+    this.props.onLoad(page => agent.Articles.favoritedBy(this.props.match.params.username, page), Promise.all([
+      agent.Profile.get(this.props.match.params.username),
+      agent.Articles.favoritedBy(this.props.match.params.username)
     ]));
   }
 
@@ -31,7 +33,7 @@ class ProfileFavorites extends Profile {
         <li className="nav-item">
           <Link
             className="nav-link"
-            to={`@${this.props.profile.username}`}>
+            to={`/@${this.props.profile.username}`}>
             My Articles
           </Link>
         </li>
@@ -39,7 +41,7 @@ class ProfileFavorites extends Profile {
         <li className="nav-item">
           <Link
             className="nav-link active"
-            to={`@${this.props.profile.username}/favorites`}>
+            to={`/@${this.props.profile.username}/favorites`}>
             Favorited Articles
           </Link>
         </li>
